@@ -1177,7 +1177,7 @@ function finish() {
   document.getElementById('r-chars').textContent = (correctChars + skippedChars) + '/' + totalChars;
   document.getElementById('r-errors').textContent = errors;
   document.getElementById('r-time').textContent = fmtDur(timeLimit);
-  const modeLabel = 'auto';
+  const modeStr = 'auto';
   const msg = wpm < 20 ? 'Doux.' : wpm < 40 ? 'Bien.' : wpm < 60 ? 'Rapide.' : wpm < 80 ? 'Tres rapide.' : 'Eclair.';
   document.getElementById('r-msg').textContent = msg;
   document.getElementById('r-detail').textContent =
@@ -1193,7 +1193,7 @@ function finish() {
         ? (wpm >= prev ? `Nouveau record ! Best : ${best} WPM` : `Best : ${prev} WPM · ce run : ${wpm} WPM`)
         : `Premier score enregistre : ${wpm} WPM`;
   } catch {}
-  window._lastScore = { wpm, acc, correctWords, errors, timeLimit, mode: modeLabel };
+  window._lastScore = { wpm, acc, correctWords, errors, timeLimit, mode: modeStr };
   const missed = [...new Set(missedRun)];
   window._lastMissed = missed;
   const cons = consistencyOf(wpmSamples);
