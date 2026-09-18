@@ -915,11 +915,10 @@ function nextPhrase() {
   if (!phraseQueue.length) phraseQueue = shuffle(PHRASES);
   return phraseQueue.shift();
 }
-// words of one phrase: capital start (setting) + closing period
+// words of one phrase: capital start (setting)
 function phraseWords(s) {
   const w = s.split(' ').filter(Boolean);
   if (settings.caps && w.length) w[0] = w[0].charAt(0).toUpperCase() + w[0].slice(1);
-  if (w.length) w[w.length - 1] += '.';
   return w;
 }
 // fills exactly one line of words (no scrolling)
