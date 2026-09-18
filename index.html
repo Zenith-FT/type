@@ -880,7 +880,7 @@ let drillActive = false, drillQueue = [], drillTotal = 0, drillErrors = 0, drill
 let wpmSamples = [], lastSampleSec = -1;
 let heatMap = {};
 try { heatMap = JSON.parse(getCookie('type-epure-heat') || '{}'); } catch { heatMap = {}; }
-let settings = { heatmap: true, nextKey: true, spark: true, kbd: true, kbdLayout: 'qwerty', autoU: false, autoSpace: true, restart: { key: 'Tab', ctrl: false, shift: false, alt: false } };
+let settings = { heatmap: true, nextKey: true, spark: true, kbd: true, kbdLayout: 'qwerty', autoU: false, autoSpace: true, caps: true, restart: { key: 'Tab', ctrl: false, shift: false, alt: false } };
 function loadSettings() {
   try {
     const ss = JSON.parse(getCookie('type-epure-settings') || '{}');
@@ -904,17 +904,27 @@ function shuffle(a) {
   }
   return a;
 }
-let phraseBuf = [];
+let phraseQueue = [];
+let phraseRemainder = [];
 let transitioning = false;
 function drawWord() {
-  if (contentMode === 'phrases') {
-    if (!phraseBuf.length) phraseBuf = shuffle(PHRASES).flatMap(s => s.split(' ').filter(Boolean));
-    return phraseBuf.shift();
-  }
   return WORDS[(Math.random() * WORDS.length) | 0];
+}
+// next phrase string (shuffled, reshuffles when exhausted)
+function nextPhrase() {
+  if (!phraseQueue.length) phraseQueue = shuffle(PHRASES);
+  return phraseQueue.shift();
+}
+// words of one phrase: capital start (setting) + closing period
+function phraseWords(s) {
+  const w = s.split(' ').filter(Boolean);
+  if (settings.caps && w.length) w[0] = w[0].charAt(0).toUpperCase() + w[0].slice(1);
+  if (w.length) w[w.length - 1] += '.';
+  return w;
 }
 // fills exactly one line of words (no scrolling)
 function fillLine() {
+  if (contentMode === 'phrases' && !drillActive) { fillPhraseLine(); return; }
   wordList = [];
   typedHistory = [];
   wordIndex = 0; charIndex = 0;
@@ -926,6 +936,25 @@ function fillLine() {
       break;
     }
   }
+  skipU();
+  render();
+}
+// one phrase per line (carries the rest over if a phrase is wider than the line)
+function fillPhraseLine() {
+  wordList = [];
+  typedHistory = [];
+  wordIndex = 0; charIndex = 0;
+  if (!phraseRemainder.length) phraseRemainder = phraseWords(nextPhrase());
+  while (phraseRemainder.length && wordList.length < 40) {
+    wordList.push(phraseRemainder[0]);
+    render();
+    if (wordList.length > 1 && $words.scrollWidth > $words.clientWidth + 2) {
+      wordList.pop();
+      break;
+    }
+    phraseRemainder.shift();
+  }
+  if (!wordList.length && phraseRemainder.length) wordList.push(phraseRemainder.shift());
   skipU();
   render();
 }
@@ -1071,7 +1100,7 @@ function reset(limit = timeLimit) {
   timeLeft = limit;
   started = false; finished = false;
   correctChars = 0; skippedChars = 0; totalTyped = 0; correctWords = 0;
-  phraseBuf = [];
+  phraseQueue = []; phraseRemainder = [];
   transitioning = false;
   missedRun = [];
   drillActive = false; drillQueue = [];
@@ -1448,6 +1477,7 @@ const SETTINGS_DEF = [
   { key: '__layout', label: 'keyboard layout', desc: 'layout of the visual keyboard' },
   { key: 'autoU', label: 'auto u', desc: 'the u key types itself, no need to press it' },
   { key: 'autoSpace', label: 'auto spaces', desc: 'moves to the next word without pressing space' },
+  { key: 'caps', label: 'capitals', desc: 'start each phrase with a capital letter' },
   { key: '__restart', label: 'restart shortcut', desc: 'restart quickly during the test' },
 ];
 function applySettings() {
