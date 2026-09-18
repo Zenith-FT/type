@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>type — test epure</title>
+<title>type — pure typing test</title>
 <style>
   :root {
     --bg: #FAFAF9;
@@ -65,6 +65,8 @@
     font-weight: 700;
     font-size: 20px;
     letter-spacing: -0.5px;
+    cursor: pointer;
+    user-select: none;
   }
   .logo span { color: var(--muted); font-weight: 400; }
   .times {
@@ -482,202 +484,244 @@
         <div id="menu">
           <div class="menu-head"><span>menu</span><button id="menu-close">✕</button></div>
           <button data-go="test">test</button>
-          <button data-go="history">historique</button>
+          <button data-go="history">history</button>
           <button data-go="stats">stats</button>
-          <button data-go="settings">parametres</button>
+          <button data-go="settings">settings</button>
         </div>
       </div>
-      <div class="logo">type<span>. epure</span></div>
+      <div class="logo" id="logo-home" title="back to test" role="button" tabindex="0">type<span>. pure</span></div>
     </div>
     <div class="head-right">
       <div class="times">
         <button data-t="15">15s</button>
         <button data-t="30" class="active">30s</button>
         <button data-t="60">60s</button>
-        <button data-t="120">2min</button>
-        <button data-t="300">5min</button>
+        <button data-t="120">2m</button>
+        <button data-t="300">5m</button>
       </div>
-      <button class="icon-btn" id="theme-toggle" title="theme sombre / clair">☀</button>
+      <button class="icon-btn" id="theme-toggle" title="dark / light theme">☀</button>
     </div>
   </header>
   <div class="seg" id="content-seg">
-    <button data-c="mots" class="active">mots</button>
-    <button data-c="phrases">phrases</button>
+    <button data-c="words">words</button>
+    <button data-c="phrases" class="active">phrases</button>
   </div>
 
   <div id="test">
-    <div class="drillbar" id="drill-bar" style="display:none">drill · <b id="drill-n">0</b> mots restants · echap pour quitter</div>
+    <div class="drillbar" id="drill-bar" style="display:none">drill · <b id="drill-n">0</b> words left · esc to quit</div>
     <div class="stats">
       <div><b id="s-wpm">0</b><span>wpm</span></div>
-      <div><b id="s-acc">100</b><span>precision %</span></div>
-      <div><b id="s-time">30</b><span>secondes</span></div>
-      <div><canvas id="spark" width="140" height="30"></canvas><span>rythme</span></div>
+      <div><b id="s-acc">100</b><span>accuracy %</span></div>
+      <div><b id="s-time">30</b><span>seconds</span></div>
+      <div><canvas id="spark" width="140" height="30"></canvas><span>pace</span></div>
     </div>
     <div id="kbd"></div>
     <div id="words"></div>
     <footer>
-      <button class="btn" id="restart">↻ &nbsp;recommencer</button>
+      <button class="btn" id="restart">↻ &nbsp;restart</button>
     </footer>
-    <div class="hint"><kbd id="restart-hint">tab</kbd> pour recommencer &nbsp;·&nbsp; <span id="mode-hint">espaces auto</span> &nbsp;·&nbsp; cliquez pour taper</div>
-    <div class="hint" id="heat-legend" style="display:none">touches teintees = lettres souvent ratees</div>
+    <div class="hint"><kbd id="restart-hint">tab</kbd> to restart &nbsp;·&nbsp; <span id="mode-hint">auto space</span> &nbsp;·&nbsp; click to type</div>
+    <div class="hint" id="heat-legend" style="display:none">tinted keys = often-missed letters</div>
   </div>
 
   <div id="results">
-    <div class="sub">resultat <span class="badge on" id="mode-badge">espace auto</span></div>
-    <div class="big" id="r-msg">Bien.</div>
+    <div class="sub">result <span class="badge on" id="mode-badge">auto space</span></div>
+    <div class="big" id="r-msg">Good.</div>
     <div class="sub" id="r-detail"></div>
     <div class="r-grid">
       <div class="r-card"><b id="r-wpm">0</b><span>wpm</span></div>
-      <div class="r-card"><b id="r-acc">0%</b><span>precision</span></div>
-      <div class="r-card"><b id="r-words">0</b><span>mots corrects</span></div>
-      <div class="r-card"><b id="r-chars">0</b><span>caracteres</span></div>
-      <div class="r-card"><b id="r-errors">0</b><span>erreurs</span></div>
-      <div class="r-card"><b id="r-time">30s</b><span>duree</span></div>
+      <div class="r-card"><b id="r-acc">0%</b><span>accuracy</span></div>
+      <div class="r-card"><b id="r-words">0</b><span>correct words</span></div>
+      <div class="r-card"><b id="r-chars">0</b><span>characters</span></div>
+      <div class="r-card"><b id="r-errors">0</b><span>errors</span></div>
+      <div class="r-card"><b id="r-time">30s</b><span>duration</span></div>
     </div>
-    <div class="sec-title" id="g-cap">courbe wpm</div>
+    <div class="sec-title" id="g-cap">wpm curve</div>
     <canvas id="big-graph" width="600" height="120"></canvas>
     <div id="r-missed-wrap" style="display:none">
-      <div class="sec-title">mots rates (<span id="r-missed-n">0</span>)</div>
+      <div class="sec-title">missed words (<span id="r-missed-n">0</span>)</div>
       <div class="missed-list" id="r-missed"></div>
       <div class="r-actions">
-        <button class="btn primary" id="retry">revoir ces mots</button>
+        <button class="btn primary" id="retry">drill these words</button>
       </div>
     </div>
     <div class="r-actions">
-      <button class="btn primary" id="again">↻ &nbsp;nouveau test</button>
-      <button class="btn" id="copy">copier le score</button>
-      <button class="btn" id="hist-open2">historique</button>
+      <button class="btn primary" id="again">↻ &nbsp;new test</button>
+      <button class="btn" id="copy">copy score</button>
+      <button class="btn" id="hist-open2">history</button>
       <button class="btn" id="stats-open2">stats</button>
     </div>
     <div id="r-best"></div>
-    <div class="hint" style="text-align:left"><kbd>tab</kbd> pour relancer</div>
+    <div class="hint" style="text-align:left"><kbd>tab</kbd> to restart</div>
   </div>
 
   <div id="history">
-    <div class="sub">historique <span class="badge on" id="h-count">0 runs</span></div>
+    <div class="sub">history <span class="badge on" id="h-count">0 runs</span></div>
     <div class="big">Runs.</div>
     <div class="h-list" id="h-list"></div>
     <div class="r-actions">
-      <button class="btn" id="hist-back">← &nbsp;retour</button>
+      <button class="btn" id="hist-back">← &nbsp;back</button>
       <button class="btn" id="stats-open3">stats</button>
-      <button class="btn" id="hist-clear">effacer</button>
+      <button class="btn" id="hist-clear">clear</button>
     </div>
-    <div class="hint" style="text-align:left"><kbd>echap</kbd> pour revenir · cliquez un run pour l'ouvrir</div>
+    <div class="hint" style="text-align:left"><kbd>esc</kbd> to go back · click a run to open it</div>
   </div>
 
   <div id="stats">
-    <div class="sub">statistiques <span class="badge on" id="st-count">0 runs</span></div>
+    <div class="sub">statistics <span class="badge on" id="st-count">0 runs</span></div>
     <div class="big">Stats.</div>
     <div class="sub" id="st-detail"></div>
     <div class="r-grid">
-      <div class="r-card"><b id="st-best">0</b><span>meilleur wpm</span></div>
-      <div class="r-card"><b id="st-avg">0</b><span>wpm moyen</span></div>
-      <div class="r-card"><b id="st-acc">0%</b><span>precision moyenne</span></div>
-      <div class="r-card"><b id="st-words">0</b><span>mots total</span></div>
-      <div class="r-card"><b id="st-time">0 min</b><span>temps total</span></div>
+      <div class="r-card"><b id="st-best">0</b><span>best wpm</span></div>
+      <div class="r-card"><b id="st-avg">0</b><span>avg wpm</span></div>
+      <div class="r-card"><b id="st-acc">0%</b><span>avg accuracy</span></div>
+      <div class="r-card"><b id="st-words">0</b><span>total words</span></div>
+      <div class="r-card"><b id="st-time">0 min</b><span>total time</span></div>
       <div class="r-card"><b id="st-runs">0</b><span>runs</span></div>
     </div>
-    <div class="sec-title">evolution — 15 derniers runs</div>
+    <div class="sec-title">progress — last 15 runs</div>
     <div class="bars" id="st-bars"></div>
     <div class="r-actions">
-      <button class="btn" id="stats-back">← &nbsp;retour</button>
-      <button class="btn" id="stats-hist">historique</button>
-      <button class="btn" id="heat-clear">raz heatmap</button>
+      <button class="btn" id="stats-back">← &nbsp;back</button>
+      <button class="btn" id="stats-hist">history</button>
+      <button class="btn" id="heat-clear">reset heatmap</button>
     </div>
-    <div class="hint" style="text-align:left"><kbd>echap</kbd> pour revenir</div>
+    <div class="hint" style="text-align:left"><kbd>esc</kbd> to go back</div>
   </div>
 
   <div id="detail">
     <div class="sub">detail <span class="badge on" id="d-date">—</span></div>
-    <div class="big" id="d-msg">Bien.</div>
+    <div class="big" id="d-msg">Good.</div>
     <div class="sub" id="d-detail"></div>
     <div class="r-grid">
       <div class="r-card"><b id="d-wpm">0</b><span>wpm</span></div>
-      <div class="r-card"><b id="d-acc">0%</b><span>precision</span></div>
-      <div class="r-card"><b id="d-words">0</b><span>mots corrects</span></div>
-      <div class="r-card"><b id="d-chars">—</b><span>caracteres</span></div>
-      <div class="r-card"><b id="d-errors">0</b><span>erreurs</span></div>
-      <div class="r-card"><b id="d-time">30s</b><span>duree</span></div>
+      <div class="r-card"><b id="d-acc">0%</b><span>accuracy</span></div>
+      <div class="r-card"><b id="d-words">0</b><span>correct words</span></div>
+      <div class="r-card"><b id="d-chars">—</b><span>characters</span></div>
+      <div class="r-card"><b id="d-errors">0</b><span>errors</span></div>
+      <div class="r-card"><b id="d-time">30s</b><span>duration</span></div>
     </div>
     <div class="r-actions">
-      <button class="btn primary" id="detail-again">↻ &nbsp;nouveau test</button>
-      <button class="btn" id="detail-back">← &nbsp;historique</button>
+      <button class="btn primary" id="detail-again">↻ &nbsp;new test</button>
+      <button class="btn" id="detail-back">← &nbsp;history</button>
     </div>
-    <div class="hint" style="text-align:left"><kbd>echap</kbd> pour revenir</div>
+    <div class="hint" style="text-align:left"><kbd>esc</kbd> to go back</div>
   </div>
 
   <div id="drill">
-    <div class="sub">drill termine</div>
-    <div class="big">Propre !</div>
+    <div class="sub">drill done</div>
+    <div class="big">Clean!</div>
     <div class="sub" id="drill-detail"></div>
     <div class="r-actions">
-      <button class="btn primary" id="drill-again">↻ &nbsp;nouveau test</button>
-      <button class="btn" id="drill-back">← &nbsp;resultats</button>
+      <button class="btn primary" id="drill-again">↻ &nbsp;new test</button>
+      <button class="btn" id="drill-back">← &nbsp;results</button>
     </div>
-    <div class="hint" style="text-align:left"><kbd>echap</kbd> pour revenir</div>
+    <div class="hint" style="text-align:left"><kbd>esc</kbd> to go back</div>
   </div>
 
   <div id="settings">
-    <div class="sub">parametres</div>
+    <div class="sub">settings</div>
     <div class="big">Options.</div>
     <div class="set-list" id="set-list"></div>
     <div class="hint" id="shortcut-note" style="text-align:left"></div>
     <div class="r-actions">
-      <button class="btn" id="settings-back">← &nbsp;retour</button>
+      <button class="btn" id="settings-back">← &nbsp;back</button>
     </div>
-    <div class="hint" style="text-align:left"><kbd>echap</kbd> pour revenir</div>
+    <div class="hint" style="text-align:left"><kbd>esc</kbd> to go back</div>
   </div>
 </div>
 
 <script>
-const WORDS = `le de un etre et avoir que pour dans ce il qui ne sur se pas plus pouvoir par je avec tout faire son mettre autre on mais nous comme ou mais encore leur dire elle devant deux meme prendre vie aussi temps jour homme main chose enfant fois monde travail entre monde sans annee grand toujours petit mot yeux corps coeur esprit force forme nuit eau feu terre air temps heure minute seconde semaine mois nuit lumiere ombre porte fenetre rue ville maison arbre fleur herbe ciel soleil lune etoile mer riviere montagne chemin route voyage reve idee pensee parole voix chant livre page ecrire lire parler ecouter regarder voir sentir toucher gouter marcher courir danser chanter rire pleurer aimer vivre calme doux lent rapide clair sombre chaud froid nouveau vieux jeune beau bon bien vite bien sur jamais souvent toujours parfois matin soir midi minuit hier demain aujourdhui rapide lent fort faible haut bas loin pres vite calme simple facile difficile juste vrai faux blanc noir rouge bleu vert jaune gris rose calme pause souffle calme focus lent doux`.split(/\s+/);
+const WORDS = `the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us are was were has had been should may might must shall being does did done going made find where much too very still learn great small large every found study home house water earth light night day morning evening today tomorrow week month hour minute second world life hand eye heart mind form fire air sun moon star sea river mountain road path journey dream idea thought word voice song book page write read speak listen watch feel touch taste walk run dance sing laugh cry love live calm soft slow fast clear dark warm cold young simple easy hard true false white black red blue green yellow gray pause breath focus tree flower grass sky cloud rain snow wind stone wood field garden park street city town school game story shadow door window wall floor roof room table chair food bread milk coffee tea fruit apple fish bird dog cat horse cow mouse sun cloud hill lake ocean beach forest desert island bridge tower clock paper pen pencil phone photo music movie night dream hope peace joy smile heart light sound color shape power magic smile laugh story song river road cloud star moon sun`.split(/\s+/);
 
 const PHRASES = [
-"le soleil se leve tot le matin",
-"les oiseaux chantent dans les arbres",
-"mon voisin promene son chien chaque soir",
-"elle lit un livre passionnant sur la plage",
-"nous marchons lentement vers la gare",
-"le vent souffle fort sur les toits",
-"il faut boire pendant le sport",
-"les enfants jouent dans la cour",
-"mon pere cuisine tres bien le dimanche",
-"la pluie tombe doucement sur les fleurs",
-"nous aimons passer du temps ensemble",
-"le train arrive avec dix minutes de retard",
-"elle porte une robe bleue tres elegante",
-"je prefere le cafe sans sucre le matin",
-"les montagnes sont belles en hiver",
-"mon chat dort pres de la fenetre",
-"nous regardons un film drole ce soir",
-"le boulanger prepare du pain frais chaque jour",
-"elle court dans le parc tous les matins",
-"les vagues frappent les rochers avec force",
-"je vais voir ma grand mere demain",
-"la nuit le ciel est plein de lumiere",
-"tu as bien travaille continue comme ca",
-"le jardin sent bon les roses au printemps",
-"mon frere joue de la guitare depuis deux ans",
-"elle ecrit une lettre a son amie",
-"nous partons en voyage la semaine prochaine",
-"le lac est calme et parfaitement transparent",
-"les eleves ecoutent le professeur avec attention",
-"je range ma chambre avant de sortir",
-"la soupe est trop chaude attends un peu",
-"mon reve est de visiter le japon un jour",
-"les abeilles butinent les fleurs au soleil",
-"il raconte toujours des histoires amusantes",
-"nous dansons toute la nuit",
-"le stade est plein pour le match de ce soir",
-"elle peint des tableaux aux couleurs vives",
-"je prends le bus pour aller au travail",
-"la bibliotheque ferme ses portes a huit heures",
-"le medecin conseille de bien dormir chaque nuit"
+"the sun rises early in the morning",
+"birds sing in the trees",
+"my neighbor walks his dog every evening",
+"she reads a great book on the beach",
+"we walk slowly toward the station",
+"the wind blows hard on the roofs",
+"you should drink water during sports",
+"the kids play in the yard",
+"my father cooks very well on sundays",
+"rain falls softly on the flowers",
+"we love spending time together",
+"the train arrives ten minutes late",
+"she wears a very elegant blue dress",
+"i like my coffee with no sugar in the morning",
+"the mountains look great in winter",
+"my cat sleeps near the window",
+"we watch a funny movie tonight",
+"the baker makes fresh bread every day",
+"she runs in the park every morning",
+"waves crash on the rocks with force",
+"i will see my grandmother tomorrow",
+"at night the sky is full of light",
+"you did good work keep going",
+"the garden smells like roses in spring",
+"my brother plays guitar for two years",
+"she writes a letter to her friend",
+"we leave for a trip next week",
+"the lake is calm and perfectly clear",
+"the students listen to the teacher with care",
+"i clean my room before going out",
+"the soup is too hot wait a little",
+"my dream is to visit japan one day",
+"bees fly over the flowers in the sun",
+"he always tells funny stories",
+"we dance all night long",
+"the stadium is full for the game tonight",
+"she paints pictures with bright colors",
+"i take the bus to go to work",
+"the library closes its doors at eight",
+"doctors say you should sleep well every night",
+"a quiet morning makes the whole day better",
+"fresh air and long walks clear my head",
+"practice a little every day and you will improve",
+"slow down and breathe between each test",
+"the river runs fast after the rain",
+"old friends always find their way back",
+"a warm meal tastes better when shared",
+"the city wakes up before the sun",
+"small steps every day build strong habits",
+"music helps me focus when i study",
+"the dog barks loudly at the mailman",
+"winter nights are long and silent",
+"a good book can change your whole week",
+"the coffee shop opens early on weekends",
+"children laugh louder than anyone else",
+"the road ahead looks bright and clear",
+"my sister draws pictures of the ocean",
+"autumn leaves fall slowly to the ground",
+"a kind word can save a bad day",
+"the moon lights up the quiet street",
+"we share stories around the warm fire",
+"morning fog hides the hills from view",
+"the old bridge crosses the wide river",
+"every mistake teaches something new",
+"the stars shine brighter far from town",
+"a short break makes the mind sharper",
+"the market sells fresh fruit each morning",
+"my keys are always lost in my bag",
+"the phone rings right during dinner",
+"a rainy day is perfect for reading",
+"the team plays better when fans cheer",
+"soft music fills the little cafe",
+"the snow covers the garden in white",
+"my plants need water twice a week",
+"the bus stops right in front of school",
+"a smile costs nothing but means a lot",
+"the sea smells of salt and summer",
+"we pack our bags the night before",
+"heavy clouds bring the storm closer",
+"the baby sleeps through all the noise",
+"my favorite season starts with falling leaves",
+"the light turns green and cars move on"
 ];
 
-let contentMode = 'mots';
+let contentMode = 'phrases';
 
-// ---- stockage cookies (pas de localStorage) ----
+// ---- cookie storage (no localStorage) ----
 function setCookie(name, value, days=365) {
   try {
     const exp = new Date(Date.now() + days * 864e5).toUTCString();
@@ -694,7 +738,7 @@ function getCookie(name) {
 function delCookie(name) {
   try { document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'; } catch {}
 }
-// gros objets : decoupes en morceaux (limite ~4ko par cookie)
+// big objects: split into chunks (~4KB per cookie limit)
 function saveBig(name, obj) {
   const raw = JSON.stringify(obj);
   const chunks = [];
@@ -767,7 +811,7 @@ function drawWord() {
   }
   return WORDS[(Math.random() * WORDS.length) | 0];
 }
-// remplit exactement une ligne de mots (pas de scroll)
+// fills exactly one line of words (no scrolling)
 function fillLine() {
   wordList = [];
   typedHistory = [];
@@ -804,12 +848,12 @@ function lineDone() {
   }, 180);
 }
 function setContent(m, save=true) {
-  contentMode = (m === 'phrases') ? 'phrases' : 'mots';
+  contentMode = (m === 'words') ? 'words' : 'phrases';
   document.querySelectorAll('#content-seg button').forEach(b =>
     b.classList.toggle('active', b.dataset.c === contentMode));
   if (save) { setCookie('type-epure-content', contentMode); }
 }
-// "u" ecrit automatiquement : pas besoin de le taper (desactivable en parametres)
+// "u" typed automatically: no need to type it (can be disabled in settings)
 function skipU() {
   if (!settings.autoU) return;
   let guard = 0;
@@ -824,7 +868,7 @@ function skipU() {
     } else break;
   }
 }
-// espace ecrit automatiquement : mot termine -> mot suivant
+// space typed automatically: finished word -> next word
 function advanceWord() {
   const hist = typedHistory[wordIndex];
   const expected = wordList[wordIndex];
@@ -890,7 +934,7 @@ function render() {
     }
     $words.appendChild(span);
   });
-  // surligne la prochaine touche sur le clavier visuel
+  // highlight the next key on the visual keyboard
   document.querySelectorAll('#kbd .key.next').forEach(el => el.classList.remove('next'));
   const nw = wordList[wordIndex];
   if (settings.nextKey && nw && charIndex < nw.length && !finished) {
@@ -971,7 +1015,7 @@ function fmtDur(sec) {
 function fmtDate(ts) {
   const d = new Date(ts);
   const p = n => String(n).padStart(2, '0');
-  return `${p(d.getDate())}/${p(d.getMonth()+1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 let lastView = 'test';
 function showHistory() {
@@ -986,7 +1030,7 @@ function showHistory() {
   if (!h.length) {
     const e = document.createElement('div');
     e.className = 'h-empty';
-    e.textContent = 'aucun resultat pour le moment — fais un test !';
+    e.textContent = 'no runs yet — do a test!';
     list.appendChild(e);
   }
   h.forEach((r, i) => {
@@ -997,7 +1041,7 @@ function showHistory() {
     b.textContent = r.wpm + ' wpm';
     const meta = document.createElement('span');
     meta.className = 'h-meta';
-    meta.textContent = `${r.acc}% · ${r.words} mots · ${r.errors} err · ${fmtDur(r.t)} · ${fmtDate(r.d)}`;
+    meta.textContent = `${r.acc}% · ${r.words} words · ${r.errors} err · ${fmtDur(r.t)} · ${fmtDate(r.d)}`;
     row.appendChild(b);
     row.appendChild(meta);
     row.addEventListener('click', e => { e.stopPropagation(); showDetail(i); });
@@ -1027,7 +1071,7 @@ function showStats() {
   document.getElementById('st-count').textContent = n + (n > 1 ? ' runs' : ' run');
   document.getElementById('st-runs').textContent = n;
   if (!n) {
-    document.getElementById('st-detail').textContent = 'aucun resultat pour le moment — fais un test !';
+    document.getElementById('st-detail').textContent = 'no runs yet — do a test!';
     ['st-best','st-avg'].forEach(id => document.getElementById(id).textContent = '0');
     document.getElementById('st-acc').textContent = '0%';
     document.getElementById('st-words').textContent = '0';
@@ -1045,7 +1089,7 @@ function showStats() {
     document.getElementById('st-words').textContent = words;
     document.getElementById('st-time').textContent = secs >= 60 ? Math.round(secs / 60) + ' min' : secs + 's';
     document.getElementById('st-detail').textContent =
-      `meilleur ${best} wpm · moyenne ${avg} wpm · ${n} run${n > 1 ? 's' : ''}`;
+      `best ${best} wpm · average ${avg} wpm · ${n} run${n > 1 ? 's' : ''}`;
     const last = h.slice(0, 15).reverse();
     const max = Math.max(...last.map(r => r.wpm), 1);
     const bars = document.getElementById('st-bars');
@@ -1067,17 +1111,18 @@ function hideStats() {
   else { document.getElementById('test').classList.remove('hide'); focus(); }
 }
 function msgFor(wpm) {
-  return wpm < 20 ? 'Doux.' : wpm < 40 ? 'Bien.' : wpm < 60 ? 'Rapide.' : wpm < 80 ? 'Tres rapide.' : 'Eclair.';
+  return wpm < 20 ? 'Gentle.' : wpm < 40 ? 'Good.' : wpm < 60 ? 'Fast.' : wpm < 80 ? 'Very fast.' : 'Blazing.';
 }
 function showDetail(i) {
   const h = getHistory();
   const r = h[i];
   if (!r) return;
-  hideMain();
+  hideOverlays();
   document.getElementById('d-date').textContent = fmtDate(r.d) + ' · ' + fmtDur(r.t);
   document.getElementById('d-msg').textContent = msgFor(r.wpm);
+  const mm = r.m === 'mots' ? 'words' : (r.m || 'words');
   document.getElementById('d-detail').textContent =
-    `${r.words} mots corrects · ${r.acc}% de precision · ${r.m === 'phrases' ? 'phrases' : 'mots'} · run du ${fmtDate(r.d)}`;
+    `${r.words} correct words · ${r.acc}% accuracy · ${mm} · run on ${fmtDate(r.d)}`;
   document.getElementById('d-wpm').textContent = r.wpm;
   document.getElementById('d-acc').textContent = r.acc + '%';
   document.getElementById('d-words').textContent = r.words;
@@ -1094,14 +1139,14 @@ function hideDetail() {
 function typeChar(ch) {
   if (finished || transitioning) return;
   if (!started) { started = true; startTimer(); updateHeat(); }
-  // "u" auto : on ignore toute frappe manuelle de "u" (sauf si desactive)
+  // "u" auto: ignore manual "u" keypresses (unless disabled)
   if (settings.autoU && ch !== ' ' && (ch === 'u' || ch === 'U')) return;
   const word = wordList[wordIndex];
   if (!typedHistory[wordIndex]) typedHistory[wordIndex] = [];
   const hist = typedHistory[wordIndex];
 
   if (ch === ' ') {
-    // espace : avance au mot suivant (secours si mot incomplet, re-avance si mot termine)
+    // space: move to next word (fallback if word incomplete, re-advance if word done)
     if (charIndex === 0) return;
     advanceWord();
   } else {
@@ -1113,7 +1158,7 @@ function typeChar(ch) {
       else recordMiss(word[charIndex]);
       charIndex++;
       skipU();
-      // espace auto (parametre) : mot fini -> suivant sans appuyer espace
+      // auto space (setting): finished word -> next one without pressing space
       if (settings.autoSpace && charIndex >= word.length) advanceWord();
     } else {
       // extra char
@@ -1131,7 +1176,7 @@ function backspace() {
   const hist = typedHistory[wordIndex];
   if (charIndex > 0) {
     charIndex--;
-    // recule par-dessus les "u" auto-ecrits
+    // step back over auto-typed "u"s
     while (charIndex > 0 && hist && hist[charIndex] === 'skip') {
       delete hist[charIndex];
       skippedChars = Math.max(0, skippedChars - 1);
@@ -1150,10 +1195,10 @@ function backspace() {
       }
     }
   } else if (wordIndex > 0) {
-    // retour mot precedent (auto-espace) pour corriger
+    // back to previous word (auto-space) to fix it
     wordIndex--;
     const prev = typedHistory[wordIndex];
-    // annule la validation auto du mot precedent
+    // undo the auto-validation of the previous word
     if (prev) {
       if (prev.error === false) correctWords = Math.max(0, correctWords - 1);
       delete prev.error;
@@ -1178,11 +1223,11 @@ function finish() {
   document.getElementById('r-errors').textContent = errors;
   document.getElementById('r-time').textContent = fmtDur(timeLimit);
   const modeStr = 'auto';
-  const msg = wpm < 20 ? 'Doux.' : wpm < 40 ? 'Bien.' : wpm < 60 ? 'Rapide.' : wpm < 80 ? 'Tres rapide.' : 'Eclair.';
+  const msg = wpm < 20 ? 'Gentle.' : wpm < 40 ? 'Good.' : wpm < 60 ? 'Fast.' : wpm < 80 ? 'Very fast.' : 'Blazing.';
   document.getElementById('r-msg').textContent = msg;
   document.getElementById('r-detail').textContent =
-    `${correctWords} mots corrects en ${fmtDur(timeLimit)} · ${acc}% de precision · ${modeLabel()}`;
-  // meilleur score local
+    `${correctWords} correct words in ${fmtDur(timeLimit)} · ${acc}% accuracy · ${modeLabel()}`;
+  // local best score
   try {
     const key = `type-epure-best-${timeLimit}`;
     const prev = +(getCookie(key) || 0);
@@ -1190,14 +1235,14 @@ function finish() {
     setCookie(key, String(best));
     document.getElementById('r-best').textContent =
       prev > 0
-        ? (wpm >= prev ? `Nouveau record ! Best : ${best} WPM` : `Best : ${prev} WPM · ce run : ${wpm} WPM`)
-        : `Premier score enregistre : ${wpm} WPM`;
+        ? (wpm >= prev ? `New record! Best: ${best} WPM` : `Best: ${prev} WPM · this run: ${wpm} WPM`)
+        : `First score saved: ${wpm} WPM`;
   } catch {}
   window._lastScore = { wpm, acc, correctWords, errors, timeLimit, mode: modeStr };
   const missed = [...new Set(missedRun)];
   window._lastMissed = missed;
   const cons = consistencyOf(wpmSamples);
-  document.getElementById('g-cap').textContent = `courbe wpm · consistance ${cons}%`;
+  document.getElementById('g-cap').textContent = `wpm curve · consistency ${cons}%`;
   drawBigGraph();
   const mw = document.getElementById('r-missed-wrap');
   const ml = document.getElementById('r-missed');
@@ -1209,7 +1254,7 @@ function finish() {
     ml.appendChild(sp);
   });
   mw.style.display = missed.length ? 'block' : 'none';
-  // historique local (50 derniers runs)
+  // local history (last 50 runs)
   try {
     const hkey = 'type-epure-history';
     const h = getHistory();
@@ -1220,13 +1265,13 @@ function finish() {
   document.getElementById('results').classList.add('show');
 }
 
-// clavier visuel AZERTY qui s'allume a la frappe
+// visual QWERTY keyboard that lights up as you type
 const KBD_ROWS = [
-  [{k:'²'},{k:'&'},{k:'é'},{k:'"'},{k:"'"},{k:'('},{k:'-'},{k:'è'},{k:'_'},{k:'ç'},{k:'à'},{k:')'},{k:'='},{k:'backspace', label:'retour', cls:'w15'}],
-  [{k:'tab', label:'tab', cls:'w15'},{k:'a'},{k:'z'},{k:'e'},{k:'r'},{k:'t'},{k:'y'},{k:'u'},{k:'i'},{k:'o'},{k:'p'},{k:'^'},{k:'$'},{k:'enter', label:'entree', cls:'w15'}],
-  [{k:'caps', label:'caps', cls:'w15'},{k:'q'},{k:'s'},{k:'d'},{k:'f'},{k:'g'},{k:'h'},{k:'j'},{k:'k'},{k:'l'},{k:'m'},{k:'ù'},{k:'*'}],
-  [{k:'shift', label:'maj', cls:'w15'},{k:'<'},{k:'w'},{k:'x'},{k:'c'},{k:'v'},{k:'b'},{k:'n'},{k:','},{k:';'},{k:':'},{k:'!'},{k:'shift', label:'maj', cls:'w15'}],
-  [{k:' ', label:'espace', cls:'space'}]
+  [{k:'`'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'-'},{k:'='},{k:'backspace', label:'backspace', cls:'w15'}],
+  [{k:'tab', label:'tab', cls:'w15'},{k:'q'},{k:'w'},{k:'e'},{k:'r'},{k:'t'},{k:'y'},{k:'u'},{k:'i'},{k:'o'},{k:'p'},{k:'['},{k:']'},{k:'\\'}],
+  [{k:'caps', label:'caps', cls:'w15'},{k:'a'},{k:'s'},{k:'d'},{k:'f'},{k:'g'},{k:'h'},{k:'j'},{k:'k'},{k:'l'},{k:';'},{k:"'"},{k:'enter', label:'enter', cls:'w15'}],
+  [{k:'shift', label:'shift', cls:'w15'},{k:'z'},{k:'x'},{k:'c'},{k:'v'},{k:'b'},{k:'n'},{k:'m'},{k:','},{k:'.'},{k:'/'},{k:'shift', label:'shift', cls:'w15'}],
+  [{k:' ', label:'space', cls:'space'}]
 ];
 function buildKbd() {
   const kb = document.getElementById('kbd');
@@ -1257,15 +1302,15 @@ function lightKey(code, on) {
     el.classList.toggle('lit', on));
 }
 
-// ---- parametres ----
+// ---- settings ----
 const SETTINGS_DEF = [
-  { key: 'heatmap', label: 'heatmap clavier', desc: 'teinte les touches souvent ratees (visible en attente)' },
-  { key: 'nextKey', label: 'prochaine touche', desc: 'entoure la touche a taper sur le clavier' },
-  { key: 'spark', label: 'rythme live', desc: 'mini courbe wpm pendant le test' },
-  { key: 'kbd', label: 'clavier visuel', desc: 'affiche le clavier AZERTY dans la page de test' },
-  { key: 'autoU', label: 'u auto', desc: 'la touche u s ecrit toute seule, pas besoin de la taper' },
-  { key: 'autoSpace', label: 'espaces auto', desc: 'passe au mot suivant sans appuyer espace' },
-  { key: '__restart', label: 'raccourci restart', desc: 'recommencer vite pendant le test' },
+  { key: 'heatmap', label: 'keyboard heatmap', desc: 'tints often-missed keys (shown while idle)' },
+  { key: 'nextKey', label: 'next key', desc: 'highlights the key to type on the keyboard' },
+  { key: 'spark', label: 'live pace', desc: 'mini wpm curve during the test' },
+  { key: 'kbd', label: 'visual keyboard', desc: 'shows the QWERTY keyboard on the test page' },
+  { key: 'autoU', label: 'auto u', desc: 'the u key types itself, no need to press it' },
+  { key: 'autoSpace', label: 'auto spaces', desc: 'moves to the next word without pressing space' },
+  { key: '__restart', label: 'restart shortcut', desc: 'restart quickly during the test' },
 ];
 function applySettings() {
   document.getElementById('kbd').style.display = settings.kbd ? '' : 'none';
@@ -1278,10 +1323,10 @@ function applySettings() {
   render();
 }
 function modeLabel() {
-  if (settings.autoU && settings.autoSpace) return 'u + espace auto';
+  if (settings.autoU && settings.autoSpace) return 'u + auto space';
   if (settings.autoU) return 'u auto';
-  if (settings.autoSpace) return 'espace auto';
-  return 'manuel';
+  if (settings.autoSpace) return 'auto space';
+  return 'manual';
 }
 function updateModeLabels() {
   const m = modeLabel();
@@ -1306,10 +1351,10 @@ function fmtShortcut(r) {
 function validateShortcut(key, ctrl, shift, alt) {
   if (['Shift', 'Control', 'Alt', 'Meta'].includes(key)) return { ok: false };
   if (key === 'Escape') return { ok: false, cancel: true };
-  if (key === 'Backspace' || key === 'Delete' || key === ' ') return { ok: false, msg: 'touche reservee, essayez autre chose' };
+  if (key === 'Backspace' || key === 'Delete' || key === ' ') return { ok: false, msg: 'reserved key, try something else' };
   if (key.length === 1 && !ctrl && !shift && !alt) {
-    if (/[\u00e0\u00e2\u00e4\u00e9\u00e8\u00ea\u00eb\u00ee\u00ef\u00f4\u00f6\u00f9\u00fb\u00fc\u00e7]/i.test(key)) return { ok: false, msg: 'sans accents svp, essayez autre chose' };
-    return { ok: false, msg: 'ajoutez ctrl, shift ou alt pour une lettre' };
+    if (/[\u00e0\u00e2\u00e4\u00e9\u00e8\u00ea\u00eb\u00ee\u00ef\u00f4\u00f6\u00f9\u00fb\u00fc\u00e7]/i.test(key)) return { ok: false, msg: 'no accented characters please, try something else' };
+    return { ok: false, msg: 'add ctrl, shift or alt for a letter' };
   }
   return { ok: true, combo: { key, ctrl: !!ctrl, shift: !!shift, alt: !!alt } };
 }
@@ -1317,7 +1362,7 @@ let capturingShortcut = false;
 function startShortcutCapture() {
   capturingShortcut = true;
   const note = document.getElementById('shortcut-note');
-  if (note) note.textContent = 'appuyez sur une touche... (echap = annuler)';
+  if (note) note.textContent = 'press a key... (esc = cancel)';
   renderSettings();
 }
 document.addEventListener('keydown', e => {
@@ -1409,7 +1454,7 @@ function toggleMenu(force) {
   document.getElementById('scrim').style.display = show ? 'block' : 'none';
 }
 
-// ---- drill mots rates ----
+// ---- missed-words drill ----
 function updateDrillBanner() {
   document.getElementById('drill-n').textContent = drillQueue.length;
 }
@@ -1468,7 +1513,7 @@ function endDrill() {
   document.getElementById('drill-bar').style.display = 'none';
   const secs = Math.max(1, Math.round((Date.now() - drillStart) / 1000));
   document.getElementById('drill-detail').textContent =
-    `${drillTotal} mot${drillTotal > 1 ? 's' : ''} revus · ${drillErrors} erreur${drillErrors > 1 ? 's' : ''} · ${secs}s`;
+    `${drillTotal} word${drillTotal > 1 ? 's' : ''} reviewed · ${drillErrors} error${drillErrors > 1 ? 's' : ''} · ${secs}s`;
   document.getElementById('test').classList.add('hide');
   document.getElementById('drill').classList.add('show');
 }
@@ -1479,7 +1524,7 @@ function quitDrill() {
   document.getElementById('results').classList.add('show');
 }
 
-// ---- heatmap des lettres ratees ----
+// ---- missed-letter heatmap ----
 function recordMiss(expectedCh) {
   const k = (expectedCh || '').toLowerCase();
   if (!k || k.length !== 1) return;
@@ -1487,7 +1532,7 @@ function recordMiss(expectedCh) {
   setCookie('type-epure-heat', JSON.stringify(heatMap));
   updateHeat();
 }
-// la heatmap ne s'affiche qu'en attente (idle), jamais pendant le run
+// the heatmap only shows while idle, never during a run
 function heatVisible() {
   return settings.heatmap && !started;
 }
@@ -1504,7 +1549,7 @@ function updateHeat() {
   });
 }
 
-// ---- courbe wpm ----
+// ---- wpm curve ----
 function sampleTick(elapsed) {
   const sec = Math.floor(elapsed);
   if (sec <= lastSampleSec) return;
@@ -1621,10 +1666,10 @@ document.getElementById('copy').addEventListener('click', async e => {
   e.stopPropagation();
   const s = window._lastScore;
   if (!s) return;
-  const txt = `type epure : ${s.wpm} WPM · ${s.acc}% precision · ${s.correctWords} mots (${fmtDur(s.timeLimit)})`;
-  try { await navigator.clipboard.writeText(txt); e.target.textContent = 'copie !'; }
-  catch { prompt('Copiez votre score :', txt); }
-  setTimeout(() => e.target.textContent = 'copier le score', 1500);
+  const txt = `type pure: ${s.wpm} WPM · ${s.acc}% accuracy · ${s.correctWords} words (${fmtDur(s.timeLimit)})`;
+  try { await navigator.clipboard.writeText(txt); e.target.textContent = 'copied!'; }
+  catch { prompt('Copy your score:', txt); }
+  setTimeout(() => e.target.textContent = 'copy score', 1500);
 });
 document.querySelectorAll('.times button').forEach(b =>
   b.addEventListener('click', e => { e.stopPropagation(); reset(+b.dataset.t); }));
@@ -1642,6 +1687,11 @@ document.getElementById('stats-hist').addEventListener('click', e => { e.stopPro
 document.getElementById('detail-back').addEventListener('click', e => { e.stopPropagation(); hideDetail(); });
 document.getElementById('detail-again').addEventListener('click', e => { e.stopPropagation(); reset(); });
 document.getElementById('theme-toggle').addEventListener('click', e => { e.stopPropagation(); setTheme(!document.body.classList.contains('dark')); });
+function goHome(e) { if (e) e.stopPropagation(); reset(); }
+document.getElementById('logo-home').addEventListener('click', goHome);
+document.getElementById('logo-home').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goHome(e); }
+});
 document.getElementById('burger').addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });
 document.getElementById('menu-close').addEventListener('click', e => { e.stopPropagation(); toggleMenu(false); });
 document.getElementById('scrim').addEventListener('click', e => { e.stopPropagation(); toggleMenu(false); });
@@ -1679,8 +1729,10 @@ document.querySelectorAll('#content-seg button').forEach(b =>
 
 try {
   const pref = getCookie('type-epure-content');
-  if (pref === 'phrases' || pref === 'mots') contentMode = pref;
-} catch {}
+  if (pref === 'phrases' || pref === 'words') contentMode = pref;
+  else if (pref === 'mots') contentMode = 'words';
+  else contentMode = 'phrases';
+} catch { contentMode = 'phrases'; }
 setContent(contentMode, false);
 try {
   const th = getCookie('type-epure-theme');
