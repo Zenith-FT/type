@@ -471,7 +471,7 @@
   }
 </style>
 </head>
-<body>
+<body class="dark">
 <input id="input" autocomplete="off" autocapitalize="off" spellcheck="false">
 <div id="scrim"></div>
 <div class="wrap">
@@ -497,7 +497,7 @@
         <button data-t="120">2min</button>
         <button data-t="300">5min</button>
       </div>
-      <button class="icon-btn" id="theme-toggle" title="theme sombre / clair">☾</button>
+      <button class="icon-btn" id="theme-toggle" title="theme sombre / clair">☀</button>
     </div>
   </header>
   <div class="seg" id="content-seg">
@@ -518,12 +518,12 @@
     <footer>
       <button class="btn" id="restart">↻ &nbsp;recommencer</button>
     </footer>
-    <div class="hint"><kbd id="restart-hint">tab</kbd> pour recommencer &nbsp;·&nbsp; “u” et espaces auto &nbsp;·&nbsp; cliquez pour taper</div>
+    <div class="hint"><kbd id="restart-hint">tab</kbd> pour recommencer &nbsp;·&nbsp; <span id="mode-hint">espaces auto</span> &nbsp;·&nbsp; cliquez pour taper</div>
     <div class="hint" id="heat-legend" style="display:none">touches teintees = lettres souvent ratees</div>
   </div>
 
   <div id="results">
-    <div class="sub">resultat <span class="badge on">u + espace auto</span></div>
+    <div class="sub">resultat <span class="badge on" id="mode-badge">espace auto</span></div>
     <div class="big" id="r-msg">Bien.</div>
     <div class="sub" id="r-detail"></div>
     <div class="r-grid">
@@ -735,7 +735,7 @@ let drillActive = false, drillQueue = [], drillTotal = 0, drillErrors = 0, drill
 let wpmSamples = [], lastSampleSec = -1;
 let heatMap = {};
 try { heatMap = JSON.parse(getCookie('type-epure-heat') || '{}'); } catch { heatMap = {}; }
-let settings = { heatmap: true, nextKey: true, spark: true, kbd: true, autoU: true, autoSpace: true, restart: { key: 'Tab', ctrl: false, shift: false, alt: false } };
+let settings = { heatmap: true, nextKey: true, spark: true, kbd: true, autoU: false, autoSpace: true, restart: { key: 'Tab', ctrl: false, shift: false, alt: false } };
 function loadSettings() {
   try {
     const ss = JSON.parse(getCookie('type-epure-settings') || '{}');
@@ -1181,7 +1181,7 @@ function finish() {
   const msg = wpm < 20 ? 'Doux.' : wpm < 40 ? 'Bien.' : wpm < 60 ? 'Rapide.' : wpm < 80 ? 'Tres rapide.' : 'Eclair.';
   document.getElementById('r-msg').textContent = msg;
   document.getElementById('r-detail').textContent =
-    `${correctWords} mots corrects en ${fmtDur(timeLimit)} · ${acc}% de precision · u + espace auto`;
+    `${correctWords} mots corrects en ${fmtDur(timeLimit)} · ${acc}% de precision · ${modeLabel()}`;
   // meilleur score local
   try {
     const key = `type-epure-best-${timeLimit}`;
@@ -1273,8 +1273,22 @@ function applySettings() {
   if (sp && sp.parentElement) sp.parentElement.style.display = settings.spark ? '' : 'none';
   const rh = document.getElementById('restart-hint');
   if (rh) rh.textContent = fmtShortcut(settings.restart);
+  updateModeLabels();
   updateHeat();
   render();
+}
+function modeLabel() {
+  if (settings.autoU && settings.autoSpace) return 'u + espace auto';
+  if (settings.autoU) return 'u auto';
+  if (settings.autoSpace) return 'espace auto';
+  return 'manuel';
+}
+function updateModeLabels() {
+  const m = modeLabel();
+  const badge = document.getElementById('mode-badge');
+  if (badge) badge.textContent = m;
+  const hint = document.getElementById('mode-hint');
+  if (hint) hint.textContent = m;
 }
 function restartMatch(e) {
   const r = settings.restart || { key: 'Tab' };
@@ -1671,9 +1685,8 @@ setContent(contentMode, false);
 try {
   const th = getCookie('type-epure-theme');
   if (th === 'dark' || th === 'light') setTheme(th === 'dark', false);
-  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme(true, false);
-  else setTheme(false, false);
-} catch { setTheme(false, false); }
+  else setTheme(true, false);
+} catch { setTheme(true, false); }
 buildKbd();
 applySettings();
 reset(30);
