@@ -367,6 +367,7 @@
     font-size: 12px;
     color: var(--muted);
   }
+  #caps-warn { color: var(--incorrect); font-weight: 600; }
   kbd {
     background: #fff;
     border: 1px solid var(--faint);
@@ -525,6 +526,7 @@
     </footer>
     <div class="hint"><kbd id="restart-hint">tab</kbd> to restart &nbsp;·&nbsp; <span id="mode-hint">auto space</span> &nbsp;·&nbsp; click to type</div>
     <div class="hint" id="heat-legend" style="display:none">tinted keys = often-missed letters</div>
+    <div class="hint" id="caps-warn" style="display:none">⚠ capslock is on — turn it off to match the text</div>
   </div>
 
   <div id="results">
@@ -1797,8 +1799,16 @@ function drawBigGraph() {
 }
 
 // events
+function updateCapsWarn(e) {
+  const warn = document.getElementById('caps-warn');
+  if (!warn) return;
+  let on = false;
+  try { on = !!(e && e.getModifierState && e.getModifierState('CapsLock')); } catch {}
+  warn.style.display = on ? 'block' : 'none';
+}
 document.addEventListener('keydown', e => {
   lightKey(kbdKeyFor(e), true);
+  updateCapsWarn(e);
   if (document.getElementById('menu').classList.contains('show')) {
     toggleMenu(false);
     if (e.key !== 'Tab') return;
@@ -1846,7 +1856,7 @@ document.addEventListener('keydown', e => {
 
 $words.addEventListener('click', focus);
 document.addEventListener('click', focus);
-document.addEventListener('keyup', e => lightKey(kbdKeyFor(e), false));
+document.addEventListener('keyup', e => { lightKey(kbdKeyFor(e), false); updateCapsWarn(e); });
 window.addEventListener('blur', () => document.querySelectorAll('#kbd .key.lit').forEach(el => el.classList.remove('lit')));
 document.getElementById('restart').addEventListener('click', e => { e.stopPropagation(); reset(); });
 document.getElementById('again').addEventListener('click', e => { e.stopPropagation(); reset(); });
