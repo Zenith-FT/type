@@ -358,6 +358,9 @@
   }
   body.dark .keybtn { background: #1e1e22; }
   .keybtn:hover { border-color: var(--correct); }
+  .keybtn.on { background: var(--correct); border-color: var(--correct); color: #fff; }
+  body.dark .keybtn.on { color: #101014; }
+  .layout-pick { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
   .hint {
     text-align: center;
     margin-top: 16px;
@@ -503,8 +506,8 @@
     </div>
   </header>
   <div class="seg" id="content-seg">
-    <button data-c="words">words</button>
     <button data-c="phrases" class="active">phrases</button>
+    <button data-c="words">words</button>
   </div>
 
   <div id="test">
@@ -716,7 +719,105 @@ const PHRASES = [
 "heavy clouds bring the storm closer",
 "the baby sleeps through all the noise",
 "my favorite season starts with falling leaves",
-"the light turns green and cars move on"
+"the light turns green and cars move on",
+"break a leg",
+"call it a day",
+"under the weather",
+"spill the beans",
+"bite the bullet",
+"hit the sack",
+"through thick and thin",
+"once in a blue moon",
+"beat around the bush",
+"cutting corners",
+"piece of cake",
+"blessing in disguise",
+"costs an arm and a leg",
+"back to the drawing board",
+"barking up the wrong tree",
+"burn the midnight oil",
+"don't judge a book by its cover",
+"hit the nail on the head",
+"let the cat out of the bag",
+"miss the boat",
+"on the fence",
+"pull someone's leg",
+"so far, so good",
+"speak of the devil",
+"that's the last straw",
+"time flies when you're having fun",
+"to make matters worse",
+"well begun is half done",
+"your guess is as good as mine",
+"a dime a dozen",
+"add fuel to the fire",
+"ball is in your court",
+"bite off more than you can chew",
+"by the skin of your teeth",
+"comparing apples to oranges",
+"cry over spilled milk",
+"curiosity killed the cat",
+"devil's advocate",
+"don't put all your eggs in one basket",
+"every cloud has a silver lining",
+"get out of hand",
+"get your act together",
+"give someone the benefit of the doubt",
+"go back to square one",
+"good things come to those who wait",
+"ignorance is bliss",
+"it takes two to tango",
+"jump on the bandwagon",
+"keep your chin up",
+"kill two birds with one stone",
+"leave no stone unturned",
+"let bygones be bygones",
+"like two peas in a pod",
+"method to my madness",
+"no pain, no gain",
+"off the hook",
+"on top of the world",
+"out of the blue",
+"play second fiddle",
+"pull yourself together",
+"rain on someone's parade",
+"seeing eye to eye",
+"shape up or ship out",
+"sit tight",
+"slow and steady wins the race",
+"straight from the horse's mouth",
+"take it with a grain of salt",
+"the elephant in the room",
+"throw in the towel",
+"tie the knot",
+"to each his own",
+"too many cooks spoil the broth",
+"twist someone's arm",
+"up in the air",
+"weather the storm",
+"when pigs fly",
+"wrap your head around something",
+"you can't have your cake and eat it too",
+"a blessing in disguise",
+"actions speak louder than words",
+"as cool as a cucumber",
+"at the drop of a hat",
+"better late than never",
+"bite the tongue",
+"burn bridges",
+"butterflies in my stomach",
+"by word of mouth",
+"call a spade a spade",
+"catch someone off guard",
+"clear the air",
+"come hell or high water",
+"cross that bridge when you come to it",
+"down to the wire",
+"draw the line",
+"face the music",
+"fly off the handle",
+"get a taste of your own medicine",
+"hit the ground running",
 ];
 
 let contentMode = 'phrases';
@@ -779,11 +880,12 @@ let drillActive = false, drillQueue = [], drillTotal = 0, drillErrors = 0, drill
 let wpmSamples = [], lastSampleSec = -1;
 let heatMap = {};
 try { heatMap = JSON.parse(getCookie('type-epure-heat') || '{}'); } catch { heatMap = {}; }
-let settings = { heatmap: true, nextKey: true, spark: true, kbd: true, autoU: false, autoSpace: true, restart: { key: 'Tab', ctrl: false, shift: false, alt: false } };
+let settings = { heatmap: true, nextKey: true, spark: true, kbd: true, kbdLayout: 'qwerty', autoU: false, autoSpace: true, restart: { key: 'Tab', ctrl: false, shift: false, alt: false } };
 function loadSettings() {
   try {
     const ss = JSON.parse(getCookie('type-epure-settings') || '{}');
-    for (const k in settings) if (k !== 'restart' && typeof ss[k] === 'boolean') settings[k] = ss[k];
+    for (const k in settings) if (k !== 'restart' && k !== 'kbdLayout' && typeof ss[k] === 'boolean') settings[k] = ss[k];
+    if (typeof ss.kbdLayout === 'string' && ss.kbdLayout) settings.kbdLayout = ss.kbdLayout.toLowerCase();
     if (ss.restart && typeof ss.restart.key === 'string')
       settings.restart = { key: ss.restart.key, ctrl: !!ss.restart.ctrl, shift: !!ss.restart.shift, alt: !!ss.restart.alt };
   } catch {}
@@ -1265,18 +1367,53 @@ function finish() {
   document.getElementById('results').classList.add('show');
 }
 
-// visual QWERTY keyboard that lights up as you type
-const KBD_ROWS = [
-  [{k:'`'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'-'},{k:'='},{k:'backspace', label:'backspace', cls:'w15'}],
-  [{k:'tab', label:'tab', cls:'w15'},{k:'q'},{k:'w'},{k:'e'},{k:'r'},{k:'t'},{k:'y'},{k:'u'},{k:'i'},{k:'o'},{k:'p'},{k:'['},{k:']'},{k:'\\'}],
-  [{k:'caps', label:'caps', cls:'w15'},{k:'a'},{k:'s'},{k:'d'},{k:'f'},{k:'g'},{k:'h'},{k:'j'},{k:'k'},{k:'l'},{k:';'},{k:"'"},{k:'enter', label:'enter', cls:'w15'}],
-  [{k:'shift', label:'shift', cls:'w15'},{k:'z'},{k:'x'},{k:'c'},{k:'v'},{k:'b'},{k:'n'},{k:'m'},{k:','},{k:'.'},{k:'/'},{k:'shift', label:'shift', cls:'w15'}],
-  [{k:' ', label:'space', cls:'space'}]
-];
+// visual keyboards that light up as you type (setting: kbdLayout)
+const KBD_LAYOUTS = {
+  qwerty: { label: 'QWERTY', rows: [
+    [{k:'`'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'-'},{k:'='},{k:'backspace', label:'backspace', cls:'w15'}],
+    [{k:'tab', label:'tab', cls:'w15'},{k:'q'},{k:'w'},{k:'e'},{k:'r'},{k:'t'},{k:'y'},{k:'u'},{k:'i'},{k:'o'},{k:'p'},{k:'['},{k:']'},{k:'\\'}],
+    [{k:'caps', label:'caps', cls:'w15'},{k:'a'},{k:'s'},{k:'d'},{k:'f'},{k:'g'},{k:'h'},{k:'j'},{k:'k'},{k:'l'},{k:';'},{k:"'"},{k:'enter', label:'enter', cls:'w15'}],
+    [{k:'shift', label:'shift', cls:'w15'},{k:'z'},{k:'x'},{k:'c'},{k:'v'},{k:'b'},{k:'n'},{k:'m'},{k:','},{k:'.'},{k:'/'},{k:'shift', label:'shift', cls:'w15'}],
+    [{k:' ', label:'space', cls:'space'}]
+  ]},
+  azerty: { label: 'AZERTY', rows: [
+    [{k:'²'},{k:'&'},{k:'é'},{k:'"'},{k:"'"},{k:'('},{k:'-'},{k:'è'},{k:'_'},{k:'ç'},{k:'à'},{k:')'},{k:'='},{k:'backspace', label:'backspace', cls:'w15'}],
+    [{k:'tab', label:'tab', cls:'w15'},{k:'a'},{k:'z'},{k:'e'},{k:'r'},{k:'t'},{k:'y'},{k:'u'},{k:'i'},{k:'o'},{k:'p'},{k:'^'},{k:'$'},{k:'enter', label:'enter', cls:'w15'}],
+    [{k:'caps', label:'caps', cls:'w15'},{k:'q'},{k:'s'},{k:'d'},{k:'f'},{k:'g'},{k:'h'},{k:'j'},{k:'k'},{k:'l'},{k:'m'},{k:'ù'},{k:'*'}],
+    [{k:'shift', label:'shift', cls:'w15'},{k:'<'},{k:'w'},{k:'x'},{k:'c'},{k:'v'},{k:'b'},{k:'n'},{k:','},{k:';'},{k:':'},{k:'!'},{k:'shift', label:'shift', cls:'w15'}],
+    [{k:' ', label:'space', cls:'space'}]
+  ]},
+  qwertz: { label: 'QWERTZ', rows: [
+    [{k:'^'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'ß'},{k:'´'},{k:'backspace', label:'backspace', cls:'w15'}],
+    [{k:'tab', label:'tab', cls:'w15'},{k:'q'},{k:'w'},{k:'e'},{k:'r'},{k:'t'},{k:'z'},{k:'u'},{k:'i'},{k:'o'},{k:'p'},{k:'ü'},{k:'+'},{k:'enter', label:'enter', cls:'w15'}],
+    [{k:'caps', label:'caps', cls:'w15'},{k:'a'},{k:'s'},{k:'d'},{k:'f'},{k:'g'},{k:'h'},{k:'j'},{k:'k'},{k:'l'},{k:'ö'},{k:'ä'},{k:'#'}],
+    [{k:'shift', label:'shift', cls:'w15'},{k:'<'},{k:'y'},{k:'x'},{k:'c'},{k:'v'},{k:'b'},{k:'n'},{k:'m'},{k:','},{k:'.'},{k:'-'},{k:'shift', label:'shift', cls:'w15'}],
+    [{k:' ', label:'space', cls:'space'}]
+  ]},
+  dvorak: { label: 'Dvorak', rows: [
+    [{k:'`'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'['},{k:']'},{k:'backspace', label:'backspace', cls:'w15'}],
+    [{k:'tab', label:'tab', cls:'w15'},{k:"'"},{k:','},{k:'.'},{k:'p'},{k:'y'},{k:'f'},{k:'g'},{k:'c'},{k:'r'},{k:'l'},{k:'/'},{k:'='},{k:'\\'}],
+    [{k:'caps', label:'caps', cls:'w15'},{k:'a'},{k:'o'},{k:'e'},{k:'u'},{k:'i'},{k:'d'},{k:'h'},{k:'t'},{k:'n'},{k:'s'},{k:'-'},{k:'enter', label:'enter', cls:'w15'}],
+    [{k:'shift', label:'shift', cls:'w15'},{k:';'},{k:'q'},{k:'j'},{k:'k'},{k:'x'},{k:'b'},{k:'m'},{k:'w'},{k:'v'},{k:'z'},{k:'shift', label:'shift', cls:'w15'}],
+    [{k:' ', label:'space', cls:'space'}]
+  ]},
+  colemak: { label: 'Colemak', rows: [
+    [{k:'`'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'-'},{k:'='},{k:'backspace', label:'backspace', cls:'w15'}],
+    [{k:'tab', label:'tab', cls:'w15'},{k:'q'},{k:'w'},{k:'f'},{k:'p'},{k:'g'},{k:'j'},{k:'l'},{k:'u'},{k:'y'},{k:';'},{k:'['},{k:']'},{k:'\\'}],
+    [{k:'caps', label:'caps', cls:'w15'},{k:'a'},{k:'r'},{k:'s'},{k:'t'},{k:'d'},{k:'h'},{k:'n'},{k:'e'},{k:'i'},{k:'o'},{k:"'"},{k:'enter', label:'enter', cls:'w15'}],
+    [{k:'shift', label:'shift', cls:'w15'},{k:'z'},{k:'x'},{k:'c'},{k:'v'},{k:'b'},{k:'k'},{k:'m'},{k:','},{k:'.'},{k:'/'},{k:'shift', label:'shift', cls:'w15'}],
+    [{k:' ', label:'space', cls:'space'}]
+  ]}
+};
+const KBD_ORDER = ['qwerty', 'azerty', 'qwertz', 'dvorak', 'colemak'];
+function kbdRows() {
+  const l = KBD_LAYOUTS[settings.kbdLayout];
+  return (l ? l.rows : KBD_LAYOUTS.qwerty.rows);
+}
 function buildKbd() {
   const kb = document.getElementById('kbd');
   kb.innerHTML = '';
-  KBD_ROWS.forEach(row => {
+  kbdRows().forEach(row => {
     const r = document.createElement('div');
     r.className = 'krow';
     row.forEach(d => {
@@ -1307,7 +1444,8 @@ const SETTINGS_DEF = [
   { key: 'heatmap', label: 'keyboard heatmap', desc: 'tints often-missed keys (shown while idle)' },
   { key: 'nextKey', label: 'next key', desc: 'highlights the key to type on the keyboard' },
   { key: 'spark', label: 'live pace', desc: 'mini wpm curve during the test' },
-  { key: 'kbd', label: 'visual keyboard', desc: 'shows the QWERTY keyboard on the test page' },
+  { key: 'kbd', label: 'visual keyboard', desc: 'shows the keyboard on the test page' },
+  { key: '__layout', label: 'keyboard layout', desc: 'layout of the visual keyboard' },
   { key: 'autoU', label: 'auto u', desc: 'the u key types itself, no need to press it' },
   { key: 'autoSpace', label: 'auto spaces', desc: 'moves to the next word without pressing space' },
   { key: '__restart', label: 'restart shortcut', desc: 'restart quickly during the test' },
@@ -1401,10 +1539,31 @@ function renderSettings() {
     txt.appendChild(b);
     txt.appendChild(desc);
     row.appendChild(txt);
+    if (d.key === '__layout') {
+      const pick = document.createElement('div');
+      pick.className = 'layout-pick';
+      KBD_ORDER.forEach(name => {
+        const b = document.createElement('button');
+        b.className = 'keybtn' + (settings.kbdLayout === name ? ' on' : '');
+        b.textContent = KBD_LAYOUTS[name].label;
+        b.addEventListener('click', e => {
+          e.stopPropagation();
+          settings.kbdLayout = name;
+          saveSettings();
+          buildKbd();
+          applySettings();
+          renderSettings();
+        });
+        pick.appendChild(b);
+      });
+      row.appendChild(pick);
+      list.appendChild(row);
+      return;
+    }
     if (d.key === '__restart') {
       const btn = document.createElement('button');
       btn.className = 'keybtn';
-      btn.textContent = capturingShortcut ? 'appuyez...' : fmtShortcut(settings.restart);
+      btn.textContent = capturingShortcut ? 'press...' : fmtShortcut(settings.restart);
       btn.addEventListener('click', e => { e.stopPropagation(); startShortcutCapture(); });
       row.appendChild(btn);
       list.appendChild(row);
