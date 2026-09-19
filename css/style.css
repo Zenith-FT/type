@@ -190,7 +190,7 @@
     pointer-events: none;
   }
 
-  #kbd { margin: 0 0 18px; user-select: none; }
+  #kbd { margin: 12px 0 0; user-select: none; }
   .krow { display: flex; gap: 5px; justify-content: center; margin-bottom: 5px; }
   .key {
     flex: 1 1 0;
@@ -479,9 +479,17 @@
   }
   .sub { color: var(--muted); font-size: 15px; margin-bottom: 32px; }
 
-  .cfg { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 6px; }
-  .cfg .seg { margin-bottom: 0; }
-  .seg .glyph { opacity: .55; margin-right: 6px; font-size: 12px; }
+  .cfg { display: flex; gap: 4px; flex-wrap: nowrap; align-items: center; justify-content: center; margin-bottom: 6px; }
+  .cfg .seg { margin-bottom: 0; flex: 0 1 auto; min-width: 0; padding: 2px; }
+  .cfg .seg button { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .seg button { white-space: nowrap; font-size: 12px; padding: 6px 8px; }
+  @media (max-width: 700px) {
+    .cfg { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
+    .cfg::-webkit-scrollbar { display: none; }
+    .cfg .seg { flex: 0 0 auto; }
+    .seg .glyph { display: none; }
+  }
+  .seg .glyph { opacity: .55; margin-right: 4px; font-size: 12px; }
   .seg button.active .glyph { opacity: 1; }
   #lang-wrap { position: relative; text-align: center; margin: 2px 0 14px; }
   #lang-btn {
@@ -553,7 +561,7 @@
   .graph-legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 5px; }
   .r-sub { color: var(--muted); font-size: 13px; margin-top: 6px; font-variant-numeric: tabular-nums; }
   #test.zen #live-wpm, #test.zen #live-acc { visibility: hidden; }
-  #test.zen #mode-hint::after { content: " · zen — just breathe"; }
+  #test.zen #mode-hint::after { content: " · zen — shift+enter to finish"; }
 
   @media (max-width: 600px) {
     #words { font-size: 19px; }

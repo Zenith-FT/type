@@ -492,11 +492,81 @@ function pickQuote() {
   quoteCurrent = q;
   return q.text.split(' ').filter(Boolean);
 }
+// zen: free typing (monkeytype-style) — no targets, everything you type is correct
+function fillZenLine() {
+  wordList = [''];
+  typedHistory = [[]];
+  wordIndex = 0; charIndex = 0;
+  if (presentedWords[presentedWords.length - 1] !== '') presentedWords.push('');
+  skipU();
+  render();
+}
+// keep presented-text entry in sync with the live zen word
+function zenSync() {
+  presentedWords[lineBaseIdx() + wordIndex] = wordList[wordIndex];
+}
+function typeZenChar(ch) {
+  if (!wordList[wordIndex]) wordList[wordIndex] = '';
+  if (!typedHistory[wordIndex]) typedHistory[wordIndex] = [];
+  const hist = typedHistory[wordIndex];
+  if (ch === ' ') {
+    if (charIndex === 0) return;
+    logEvent('space', ' ', spanOf(wordIndex, wordList[wordIndex].length), true, -1);
+    keysThisSec++;
+    wordList.push('');
+    typedHistory.push([]);
+    presentedWords.push('');
+    advanceWord();
+    render();
+    if (wordList.length > 1 && $words.scrollWidth > $words.clientWidth + 2) lineDone();
+  } else {
+    totalTyped++;
+    keysThisSec++;
+    logEvent('char', ch, spanOf(wordIndex, charIndex), true, -1);
+    wordList[wordIndex] += ch;
+    hist[charIndex] = true;
+    correctChars++;
+    charIndex++;
+    zenSync();
+  }
+  render();
+}
+function backspaceZen() {
+  keysThisSec++;
+  const hist = typedHistory[wordIndex];
+  if (charIndex > 0) {
+    charIndex--;
+    wordList[wordIndex] = wordList[wordIndex].slice(0, -1);
+    if (hist) delete hist[charIndex];
+    zenSync();
+    logEvent('back', '', -1, false, spanOf(wordIndex, charIndex));
+  } else if (wordIndex > 0) {
+    // merge back into previous word, drop the empty current word
+    const pi = lineBaseIdx() + wordIndex;
+    wordList.splice(wordIndex, 1);
+    typedHistory.splice(wordIndex, 1);
+    presentedWords.splice(pi, 1);
+    wordIndex--;
+    const prev = typedHistory[wordIndex];
+    if (prev) {
+      if (prev.error === false) {
+        correctWords = Math.max(0, correctWords - 1);
+        correctWordChars = Math.max(0, correctWordChars - wordList[wordIndex].length);
+      }
+      if (prev._missed) { missedChars = Math.max(0, missedChars - prev._missed); delete prev._missed; }
+      delete prev.error;
+    }
+    charIndex = wordList[wordIndex].length;
+    logEvent('back', '', -1, false, spanOf(wordIndex, charIndex));
+  }
+  render();
+}
 // fills exactly one line of words (no scrolling)
 function fillLine() {
   if (drillActive) { fillDrillLineGeneric(); return; }
+  if (testMode === 'zen') { fillZenLine(); return; }
   if (testMode === 'quote' || testMode === 'words') { fillFixedLine(); return; }
-  if ((testMode === 'time' || testMode === 'zen') && fullTargetWords.length) { fillFixedLine(); return; }
+  if (testMode === 'time' && fullTargetWords.length) { fillFixedLine(); return; }
   wordList = [];
   typedHistory = [];
   wordIndex = 0; charIndex = 0;
@@ -910,7 +980,7 @@ function showHistory() {
     const meta = document.createElement('span');
     meta.className = 'h-meta';
     const tt = r.ttype || (r.testMode ? (r.testMode + ' ' + (r.testMode === 'time' ? (r.timeLimit || r.t) : r.wordCount || '')) : fmtDur(r.t));
-    meta.textContent = `${r.acc}% · ${r.words} words · raw ${r.raw != null ? r.raw : '?'} · ${r.errors} err · ${tt} · ${fmtDate(r.d)}`;
+    meta.textContent = `${r.acc != null ? r.acc + '%' : '—'} · ${r.words} words · raw ${r.raw != null ? r.raw : '?'} · ${r.errors} err · ${tt} · ${fmtDate(r.d)}`;
     row.appendChild(b);
     row.appendChild(meta);
     row.addEventListener('click', e => { e.stopPropagation(); showDetail(i); });
@@ -949,7 +1019,8 @@ function showStats() {
   } else {
     const best = Math.max(...h.map(r => r.wpm));
     const avg = Math.round(h.reduce((s, r) => s + r.wpm, 0) / n);
-    const acc = Math.round(h.reduce((s, r) => s + r.acc, 0) / n);
+    const withAcc = h.filter(r => r.acc != null);
+    const acc = withAcc.length ? Math.round(withAcc.reduce((s, r) => s + r.acc, 0) / withAcc.length) : 0;
     const words = h.reduce((s, r) => s + (r.words || 0), 0);
     const secs = h.reduce((s, r) => s + (r.t || 0), 0);
     document.getElementById('st-best').textContent = best;
@@ -995,7 +1066,7 @@ function showDetail(i) {
   document.getElementById('d-detail').textContent =
     `${r.words} correct words · ${r.acc}% accuracy · ${mm} · run on ${fmtDate(r.d)}`;
   document.getElementById('d-wpm').textContent = r.wpm;
-  document.getElementById('d-acc').textContent = r.acc + '%';
+  document.getElementById('d-acc').textContent = r.acc != null ? r.acc + '%' : '—';
   document.getElementById('d-raw').textContent = r.raw != null ? r.raw : '—';
   const chStr = (r.c != null && (r.incorrect != null || r.tot != null))
     ? (r.c + '/' + (r.incorrect != null ? r.incorrect : '?') + '/' + (r.extra != null ? r.extra : '?') + '/' + (r.missed != null ? r.missed : '?'))
@@ -1022,6 +1093,7 @@ function typeChar(ch) {
   if (!started) { started = true; startTimer(); updateHeat(); }
   // "u" auto: ignore manual "u" keypresses (unless disabled)
   if (settings.autoU && ch !== ' ' && (ch === 'u' || ch === 'U')) return;
+  if (testMode === 'zen' && !drillActive) { typeZenChar(ch); return; }
   const word = wordList[wordIndex];
   if (!word) return;
   if (!typedHistory[wordIndex]) typedHistory[wordIndex] = [];
@@ -1067,6 +1139,7 @@ function typeChar(ch) {
 function backspace() {
   if (finished || transitioning) return;
   if (wordIndex === 0 && charIndex === 0) return;
+  if (testMode === 'zen' && !drillActive) { backspaceZen(); return; }
   keysThisSec++;
   const hist = typedHistory[wordIndex];
   if (charIndex > 0) {
@@ -1118,16 +1191,23 @@ function finish() {
   clearInterval(timer);
   stopGhost();
   const elapsedSec = testMode === 'time' ? timeLimit : Math.max(1, (Date.now() - startTime) / 1000);
-  // finalize current partial word (missed chars)
-  try {
-    const hist = typedHistory[wordIndex];
-    const expected = wordList[wordIndex];
-    if (hist && expected && !hist.error && (charIndex > 0)) {
-      let missed = 0;
-      for (let i = charIndex; i < expected.length; i++) missed++;
-      missedChars += missed;
-    }
-  } catch {}
+  const isZen = testMode === 'zen';
+  if (isZen && presentedWords.length && presentedWords[presentedWords.length - 1] === '') presentedWords.pop();
+  if (isZen) {
+    // zen: everything typed is correct — no missed/incorrect concept
+    correctWordChars = totalTyped;
+  } else {
+    // finalize current partial word (missed chars)
+    try {
+      const hist = typedHistory[wordIndex];
+      const expected = wordList[wordIndex];
+      if (hist && expected && !hist.error && (charIndex > 0)) {
+        let missed = 0;
+        for (let i = charIndex; i < expected.length; i++) missed++;
+        missedChars += missed;
+      }
+    } catch {}
+  }
   // flush last second sample
   sampleTick(elapsedSec, true);
   const elapsedMin = elapsedSec / 60;
@@ -1143,9 +1223,9 @@ function finish() {
   const durLabel = testMode === 'time' ? fmtDur(timeLimit) : Math.round(elapsedSec) + 's';
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set('r-wpm', wpm); set('r-wpm-big', wpm);
-  set('r-acc', acc + '%'); set('r-acc-big', acc + '%');
+  set('r-acc', isZen ? '—' : acc + '%'); set('r-acc-big', isZen ? '—' : acc + '%');
   set('r-raw', raw);
-  set('r-chars', charStr);
+  set('r-chars', isZen ? '—' : charStr);
   set('r-cons', cons + '%');
   set('r-time', durLabel);
   set('r-testtype', ttype);
@@ -1155,7 +1235,9 @@ function finish() {
   set('test-type-badge', ttype);
   const msg = testMode === 'zen' ? 'Calm.' : msgFor(wpm);
   set('r-msg', msg);
-  set('r-detail', `${correctWords} correct words in ${durLabel} · ${acc}% accuracy · ${ttype} · ${modeLabel()}`);
+  set('r-detail', isZen
+    ? `${correctWords} words in ${durLabel} · zen · ${modeLabel()}`
+    : `${correctWords} correct words in ${durLabel} · ${acc}% accuracy · ${ttype} · ${modeLabel()}`);
   if (quoteCurrent && testMode === 'quote') set('r-detail', `“${quoteCurrent.text}” — ${quoteCurrent.source} · ${acc}% · ${ttype}`);
   // local best score (per test type — never in zen, just vibes)
   try {
@@ -1189,7 +1271,7 @@ function finish() {
     config: {testMode, wordCount, timeLimit, usePunct, useNumbers, language, quoteLen},
     quote: quoteCurrent
   };
-  window._lastScore = { wpm, raw, acc, correctWords, errors, timeLimit, elapsedSec, mode: ttype };
+  window._lastScore = { wpm, raw, acc: isZen ? null : acc, correctWords, errors, timeLimit, elapsedSec, mode: ttype };
   drawBigGraph();
   const mw = document.getElementById('r-missed-wrap');
   const ml = document.getElementById('r-missed');
@@ -1201,14 +1283,15 @@ function finish() {
     ml.appendChild(sp);
   });
   mw.style.display = missed.length ? 'block' : 'none';
-  // local history (last 50 runs, cap replay size)
+  // local history (last 50 runs, cap replay size; zen under 15s is not saved)
   try {
+    if (!(isZen && elapsedSec < 15)) {
     const h = getHistory();
     h.unshift({
-      d: Date.now(), wpm, raw, acc, cons, words: correctWords, errors,
+      d: Date.now(), wpm, raw, acc: isZen ? null : acc, cons, words: correctWords, errors,
       t: Math.round(elapsedSec), timeLimit, testMode, wordCount, usePunct, useNumbers,
-      c: correctTotal, tot: correctTotal + incorrectChars + extraChars,
-      incorrect: incorrectChars, extra: extraChars, missed: missedChars,
+      c: isZen ? null : correctTotal, tot: correctTotal + incorrectChars + extraChars,
+      incorrect: isZen ? null : incorrectChars, extra: isZen ? null : extraChars, missed: isZen ? null : missedChars,
       m: testMode, lang: language, ttype,
       missedWords: missed.slice(0, 20),
       wpmHist: wpmSamples.slice(0, 400), rawHist: rawSamples.slice(0, 400), errHist: errSamples.slice(0, 400),
@@ -1218,6 +1301,7 @@ function finish() {
       quote: quoteCurrent ? {text: quoteCurrent.text, source: quoteCurrent.source} : null
     });
     storeSet('history', h.slice(0, 50));
+    }
   } catch {}
   document.getElementById('test').classList.add('hide');
   document.getElementById('results').classList.add('show');
@@ -1879,6 +1963,8 @@ document.addEventListener('keydown', e => {
     return;
   }
   if (e.key === 'Backspace') { e.preventDefault(); backspace(); return; }
+  if (e.key === 'Enter' && e.shiftKey && testMode === 'zen' && started && !finished &&
+      !document.getElementById('results').classList.contains('show')) { e.preventDefault(); finish(); return; }
   if (e.key === 'Enter') { e.preventDefault(); typeChar(' '); return; }
   if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
     if (e.key === ' ' && wordIndex===0 && charIndex===0 && !started) return;
@@ -1910,7 +1996,7 @@ document.getElementById('copy').addEventListener('click', async e => {
   e.stopPropagation();
   const s = window._lastScore;
   if (!s) return;
-  const txt = `type pure: ${s.wpm} WPM (raw ${s.raw}) · ${s.acc}% acc · ${s.correctWords} words · ${s.mode}`;
+  const txt = `type pure: ${s.wpm} WPM (raw ${s.raw}) · ${s.acc != null ? s.acc + '% acc' : 'zen'} · ${s.correctWords} words · ${s.mode}`;
   try { await navigator.clipboard.writeText(txt); e.target.textContent = 'copied!'; }
   catch { prompt('Copy your score:', txt); }
   setTimeout(() => e.target.textContent = 'copy score', 1500);
@@ -1997,4 +2083,5 @@ try {
 } catch { setTheme(true, false); }
 buildKbd();
 applySettings();
-loadBanks().then(() => reset(timeLimit)).catch(() => reset(timeLimit));
+reset(timeLimit); // instant first paint with fallback banks
+loadBanks().then(() => reset(timeLimit)).catch(() => {});
